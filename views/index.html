@@ -1,0 +1,147 @@
+<%- include('header.html'); -%>
+
+<div class="container">
+  <div class="py-5 text-center">
+    <h1>Order with Scalapay</h1>
+  </div>
+
+  <div class="row">
+    <div class="col-md-4 order-md-2 mb-4">
+      <h4 class="d-flex justify-content-between align-items-center mb-3">
+        <span class="text-muted">Configurations</span>
+      </h4>
+      <ul class="list-group mb-3">
+        <li class="list-group-item d-flex justify-content-between lh-condensed">
+          <div>
+            <h6 class="my-0">Minimum Amount</h6>
+<!--            <small class="text-muted">Brief description</small>-->
+          </div>
+          <span class="text-muted">(<%= data.minimumAmount.currency %>) <%= data.minimumAmount.amount %></span>
+        </li>
+        <li class="list-group-item d-flex justify-content-between lh-condensed">
+          <div>
+            <h6 class="my-0">Maximum Amount</h6>
+          </div>
+          <span class="text-muted">(<%= data.maximumAmount.currency %>) <%= data.maximumAmount.amount %></span>
+        </li>
+        <li class="list-group-item d-flex justify-content-between lh-condensed">
+          <div>
+            <h6 class="my-0">Number of payment</h6>
+          </div>
+          <span class="text-muted"><%= data.numberOfPayments %></span>
+        </li>
+      </ul>
+    </div>
+
+    <div class="col-md-8 order-md-1">
+      <form class="needs-validation" method="POST" action="/order" novalidate enctype="multipart/form-data">
+      <input type="hidden" name="merchantReference" value="testOrder-1234" />
+        <h4 class="mb-3">Customer Information</h4>
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="consumer-givenNames">First name</label>
+            <input type="text" class="form-control" id="consumer-givenNames" name="consumer[givenNames]" placeholder="" value="Jay" required>
+            <div class="invalid-feedback">Valid first name is required.</div>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="consumer-surname">Last name</label>
+            <input type="text" class="form-control" id="consumer-surname" name="consumer[surname]" placeholder="" value="Jung" required>
+            <div class="invalid-feedback">Valid last name is required.</div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="consumer-email">Email</label>
+            <input type="text" class="form-control" id="consumer-email" name="consumer[email]" placeholder="" value="jayjung@ezion.com.au" required>
+            <div class="invalid-feedback">Valid first name is required.</div>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="consumer-phoneNumber">Phone number</label>
+            <input type="text" class="form-control" id="consumer-phoneNumber" name="consumer[phoneNumber]" placeholder="" value="0400000000" required>
+          </div>
+        </div>
+
+        <hr class="mb-4">
+        <h4 class="mb-3">Shipping address</h4>
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="shipping-name">Name</label>
+            <input type="text" class="form-control" id="shipping-name" name="shipping[name]" placeholder="Shipping name" value="Jay Jung" required>
+            <div class="invalid-feedback">Please enter a valid name for shipping updates.</div>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="shipping-phoneNumber">Phone number</label>
+            <input type="text" class="form-control" id="shipping-phoneNumber" name="shipping[phoneNumber]" placeholder="0400000000" value="0400000000" required>
+            <div class="invalid-feedback">Please enter a valid phone number for shipping updates.</div>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label for="shipping-line1">Address</label>
+          <input type="text" class="form-control" id="shipping-line1" placeholder="Via della Rosa, 23" value="Via della Rosa, 23" required>
+          <div class="invalid-feedback">Please enter your shipping address.</div>
+        </div>
+        <div class="mb-3">
+          <label for="shipping-suburb">Suburb</label>
+          <input type="text" class="form-control" id="shipping-suburb" placeholder="Montelupo Fiorentino" value="Montelupo Fiorentino" required>
+          <div class="invalid-feedback">Please enter your suburb.</div>
+        </div>
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="shipping-countryCode">Country</label>
+            <select class="custom-select d-block w-100" id="shipping-countryCode" name="shipping[countryCode]" required>
+              <% for(var i=0; i < locales.length; i++) { %>
+                <option value="<%= locales[i] %>"><%= locales[i] %></option>
+              <% } %>
+            </select>
+            <div class="invalid-feedback">Please select a valid country.</div>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="shipping-postcode">Postcode</label>
+            <input type="text" class="form-control" id="shipping-postcode" name="shipping[postcode]" placeholder="" value="50056" required>
+            <div class="invalid-feedback">Please enter a valid postcode.</div>
+          </div>
+        </div>
+
+        <hr class="mb-4">
+        <h4 class="mb-3">Items</h4>
+        <div class="row">
+          <div class="col-md-12">
+            <table class="table table-striped">
+              <thead>
+              <tr>
+                <th scope="col">SKU</th>
+                <th scope="col">Item</th>
+                <th scope="col">Quantity</th>
+                <th scope="col">Price</th>
+                <th scope="col">Total Amount</th>
+              </tr>
+              </thead>
+              <tbody>
+
+              <% for(var i=0; i < items.length; i++) { %>
+                <tr>
+                  <td><%= items[i].sku %></td>
+                  <td><%= items[i].name %></td>
+                  <td align="center"><%= items[i].quantity %></td>
+                  <td align="center"><%= items[i].price.amount %></td>
+                  <td align="center"><%= items[i].price.amount %></td>
+                </tr>
+              <% } %>
+              <tr>
+                <td colspan="4" align="right">Total</td>
+                <td align="center"><%= totAmount %></td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <hr class="mb-4">
+        <button type="submit" id="btnSubmit" class="btn btn-primary btn-lg btn-block" >CHECKOUT</button>
+      </form>
+    </div>
+  </div>
+
+</div>
+
+<%- include('footer.html'); -%>
