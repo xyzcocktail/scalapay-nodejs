@@ -27,5 +27,12 @@ $ yarn start (or npm run start)
 ```
 * Open browser [http://localhost:3000](http://localhost:3000) 
 
-     
+### Docker 
 
+```shell
+$ git clone git@github.com:xyzcocktail/scalapay-nodejs.git
+$ cd scalapay-nodejs
+$ docker build -t scalapay-node-app . 
+$ docker run -p 3000:3000 -d scalapay-node-app 
+```
+* Open browser [http://localhost:3000](http://localhost:3000)
