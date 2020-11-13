@@ -4,80 +4,68 @@ const router = express.Router();
 const api = require('../services/api');
 const multipart = require('connect-multiparty');
 const multipartMiddleware = multipart();
+const { body, validationResult } = require('express-validator');
 
 let totAmount = 0;
 
-const CART_ITEMS = [
-  {
-    "name": "T-Shirt",
-    "category": "clothes",
-    "subcategory": ["shirt", "long-sleeve"],
-    "brand": "TopChoice",
-    "gtin": "123458791330",
-    "sku": "12341234",
-    "quantity": 1,
-    "price": {
-      "amount": "10.00",
-      "currency": "EUR"
-    }
-  },
-  {
-    "name": "Jeans",
-    "category": "clothes",
-    "subcategory": ["pants", "jeans"],
-    "brand": "TopChoice",
-    "gtin": "123458722222",
-    "sku": "12341235",
-    "quantity": 1,
-    "price": {
-      "amount": "20.00",
-      "currency": "EUR"
-    }
-  }
-];
-
-CART_ITEMS.forEach(item => {
+CONSTS.CART_ITEMS.forEach(item => {
   if (item.price && item.price.amount) {
     totAmount += parseFloat(item.price.amount);
   }
 });
 
 /* HOME */
-router.get('/', function(req, res, next) {
+router.get('/', (req, res, next) => {
   api.getConfigurations()
-    .then(function(respData) {
+    .then((respData) => {
       CONSTS.DEBUG && console.info("***** Response: ");
       CONSTS.DEBUG && console.info(respData);
       res.render('index.html', {
         data: respData,
-        items: CART_ITEMS,
+        items: CONSTS.CART_ITEMS,
         totAmount: totAmount,
         locales: CONSTS.LOCALES,
         currencies: CONSTS.CURRENCIES
       });
     })
-    .catch(function(errMsg) {
+    .catch((errMsg) => {
       CONSTS.DEBUG && console.info(`***** Error: ${errMsg}`);
       res.render('error.html', { message: errMsg });
     });
 });
 
 /* ORDER */
-router.post('/order', multipartMiddleware, function(req, res, next) {
+router.post('/order', [
+    multipartMiddleware,
+    body('consumer.givenNames').notEmpty(),
+    body('consumer.surname').notEmpty(),
+    body('consumer.email').isEmail(),
+    body('consumer.phoneNumber').notEmpty(),
+    body('shipping.name').notEmpty(),
+    body('shipping.phoneNumber').notEmpty(),
+    body('shipping.line1').notEmpty(),
+    body('shipping.suburb').notEmpty(),
+    body('shipping.countryCode').notEmpty(),
+    body('shipping.postcode').notEmpty(),
+  ], (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    res.render('error.html', { message: 'Invalid data!' });
+    // return res.status(400).json({ errors: errors.array() });
+  }
   let params = {};
-  let body = req.body;
-  CONSTS.DEBUG && console.log(body);
-  if (body) {
-    params.consumer = body.consumer;
-    params.shipping = body.shipping;
-    params.items = CART_ITEMS;
+  let postData = req.body;
+  if (postData) {
+    params.consumer = postData.consumer;
+    params.shipping = postData.shipping;
     params.merchant = { redirectConfirmUrl: "http://localhost:3000/success", redirectCancelUrl: "http://localhost:3000/" };
-    params.merchantReference = body.merchantReference;
+    params.merchantReference = postData.merchantReference;
+    params.items = CONSTS.CART_ITEMS;
     params.totalAmount = { amount: totAmount.toString(), currency: 'EUR' };
     CONSTS.DEBUG && console.log("** order [params]: **");
     CONSTS.DEBUG && console.log(JSON.stringify(params));
     api.createOrder(JSON.stringify(params))
-      .then(function(respData) {
+      .then((respData) => {
         if (respData && respData.checkoutUrl) {
           res.writeHead(301, { Location: respData.checkoutUrl });
           res.end();
@@ -86,7 +74,7 @@ router.post('/order', multipartMiddleware, function(req, res, next) {
           res.writeHead(301, { Location: '/' });
         }
       })
-      .catch(function(errMsg) {
+      .catch((errMsg) => {
         CONSTS.DEBUG && console.info(`***** Error: ${errMsg} *****`);
         res.render('error.html', { message: errMsg });
       });
